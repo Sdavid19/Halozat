@@ -1,0 +1,4 @@
+iptables -t nat -L --line-numbers
+
+iptables -t nat -D PREROUTING <szám>
+iptables -t nat -D POSTROUTING <szám>
