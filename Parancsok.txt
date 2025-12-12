@@ -1,0 +1,28 @@
+# ---- R4 teljes beállítás ----
+
+# 1. Default route R3 felé
+ip route add default via 10.0.0.1
+
+# 2. NAT (R4 LAN -> R3)
+iptables -t nat -A POSTROUTING -o eth0 -s 192.168.4.0/24 -j MASQUERADE
+
+# 3. Port forward: kívülről jövő 80-as port megy a szerverre
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination 192.168.4.10:80
+
+# 4. FORWARD engedélyezések
+iptables -A FORWARD -p tcp -d 192.168.4.10 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.4.10 --sport 80 -j ACCEPT
+
+
+
+# ---- R3 teljes beállítás ----
+
+# 1. NAT kifelé (R3 WAN -> internet)
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# 2. Port forward: WAN -> R4 (R4 WAN IP-je: 10.0.0.2)
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination 10.0.0.2:80
+
+# 3. FORWARD engedélyezések
+iptables -A FORWARD -p tcp -d 10.0.0.2 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 10.0.0.2 --sport 80 -j ACCEPT
